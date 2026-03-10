@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-to-Issue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .voice-section {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .voice-controls {
+            margin: 20px 0;
+        }
+        
+        .record-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .record-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .record-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .record-button.recording {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+        
+        .audio-player {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .audio-player audio {
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        .submit-button {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 210, 255, 0.3);
+        }
+        
+        .submit-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+        
+        .fallback-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .fallback-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .recording-indicator {
+            display: none;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .record-button {
+                padding: 15px 30px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Voice-to-Issue</h1>
+            <p>Convert your voice recordings into GitHub issues instantly</p>
+        </div>
+        
+        <form id="voiceForm">
+            <div class="form-group">
+                <label for="repository">GitHub Repository *</label>
+                <input type="text" id="repository" name="repository" 
+                       placeholder="e.g., username/repo-name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="context">Additional Context (Optional)</label>
+                <textarea id="context" name="context" rows="3" 
+                          placeholder="Any additional context or information about this issue..."></textarea>
+            </div>
+            
+            <div class="voice-section">
+                <h3>🎙️ Record Your Issue</h3>
+                <p>Click the button below to start recording your issue description</p>
+                
+                <div class="voice-controls">
+                    <button type="button" id="recordButton" class="record-button">
+                        Start Recording
+                    </button>
+                    <button type="button" id="stopButton" class="record-button" disabled>
+                        Stop Recording
+                    </button>
+                </div>
+                
+                <div id="recordingIndicator" class="recording-indicator">
+                    🔴 Recording in progress... Speak clearly into your microphone
+                </div>
+                
+                <div id="audioPlayer" class="audio-player">
+                    <audio controls></audio>
+                </div>
+                
+                <button type="submit" id="submitButton" class="submit-button" disabled>
+                    Create Issue from Recording
+                </button>
+            </div>
+        </form>
+        
+        <div class="fallback-section">
+            <h3>💬 Or Type Your Issue</h3>
+            <form id="textForm">
+                <div class="form-group">
+                    <label for="textContent">Issue Description *</label>
+                    <textarea id="textContent" name="textContent" rows="6" 
+                              placeholder="Describe your issue or feature request in detail..." required></textarea>
+                </div>
+                <button type="submit" class="submit-button">Create Issue from Text</button>
+            </form>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedBlob = null;
+        
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const submitButton = document.getElementById('submitButton');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = audioPlayer.querySelector('audio');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const voiceForm = document.getElementById('voiceForm');
+        const textForm = document.getElementById('textForm');
+        const status = document.getElementById('status');
+        
+        // Check for browser support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showStatus('error', 'Voice recording is not supported in your browser. Please use the text input below.');
+            document.querySelector('.voice-section').style.display = 'none';
+        }
+        
+        recordButton.addEventListener('click', startRecording);
+        stopButton.addEventListener('click', stopRecording);
+        voiceForm.addEventListener('submit', submitVoiceForm);
+        textForm.addEventListener('submit', submitTextForm);
+        
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(recordedBlob);
+                    audioElement.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+                    submitButton.disabled = false;
+                    
+                    // Stop all tracks to release the microphone
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                
+                recordButton.disabled = true;
+                recordButton.classList.add('recording');
+                stopButton.disabled = false;
+                recordingIndicator.style.display = 'block';
+                
+                showStatus('info', '🎤 Recording started! Speak clearly into your microphone.');
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                showStatus('error', 'Could not access microphone. Please check your browser settings and try again.');
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            recordButton.disabled = false;
+            recordButton.classList.remove('recording');
+            stopButton.disabled = true;
+            recordingIndicator.style.display = 'none';
+            
+            showStatus('success', '✅ Recording completed! You can now submit your issue.');
+        }
+        
+        async function submitVoiceForm(e) {
+            e.preventDefault();
+            
+            if (!recordedBlob) {
+                showStatus('error', 'Please record audio first.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('audio_file', recordedBlob, 'recording.webm');
+            formData.append('repository', document.getElementById('repository').value);
+            formData.append('context', document.getElementById('context').value);
+            
+            submitButton.disabled = true;
+            showStatus('info', '🔄 Processing your recording and creating issue...');
+            
+            try {
+                const response = await fetch('/upload-voice', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('success', 
+                        `✅ Issue created successfully! 
+                         <br><strong>Title:</strong> ${result.title}
+                         <br><a href="${result.issue_url}" target="_blank">View Issue #${result.issue_number}</a>`
+                    );
+                    voiceForm.reset();
+                    audioPlayer.style.display = 'none';
+                    recordedBlob = null;
+                } else {
+                    showStatus('error', `❌ Error: ${result.message || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('error', '❌ Network error. Please check your connection and try again.');
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+        
+        async function submitTextForm(e) {
+            e.preventDefault();
+            
+            const repository = document.getElementById('repository').value;
+            const textContent = document.getElementById('textContent').value;
+            const context = document.getElementById('context').value;
+            
+            if (!repository || !textContent) {
+                showStatus('error', 'Please fill in all required fields.');
+                return;
+            }
+            
+            const submitBtn = textForm.querySelector('.submit-button');
+            submitBtn.disabled = true;
+            showStatus('info', '🔄 Creating issue from text...');
+            
+            try {
+                const response = await fetch('/text-to-issue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        text_content: textContent,
+                        repository: repository,
+                        context: context
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('success', 
+                        `✅ Issue created successfully! 
+                         <br><strong>Title:</strong> ${result.title}
+                         <br><a href="${result.issue_url}" target="_blank">View Issue #${result.issue_number}</a>`
+                    );
+                    textForm.reset();
+                } else {
+                    showStatus('error', `❌ Error: ${result.message || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('error', '❌ Network error. Please check your connection and try again.');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+        
+        function showStatus(type, message) {
+            status.className = `status ${type}`;
+            status.innerHTML = message;
+            status.style.display = 'block';
+            
+            // Auto-hide success messages after 10 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 10000);
+            }
+        }
+        
+        // Auto-fill repository field if user has used it before
+        const savedRepo = localStorage.getItem('voice-to-issue-repo');
+        if (savedRepo) {
+            document.getElementById('repository').value = savedRepo;
+        }
+        
+        // Save repository for next time
+        document.getElementById('repository').addEventListener('blur', function() {
+            if (this.value) {
+                localStorage.setItem('voice-to-issue-repo', this.value);
+            }
+        });
+    </script>
+</body>
+</html>
