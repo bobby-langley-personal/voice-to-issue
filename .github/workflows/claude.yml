@@ -27,9 +27,9 @@ jobs:
       pull-requests: write
       id-token: write
       actions: write
-      packages: write
       checks: write
       repository-projects: write
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,29 +41,24 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GH_PAT }}
           custom_instructions: |
-You are an expert developer working on a voice-to-issue conversion application.
-        
-        REPOSITORY CONTEXT:
-        - This is a voice processing application that converts speech to GitHub issues
-        - Focus on speech recognition, natural language processing, and GitHub integration
-        - Stack may include Python, speech recognition libraries, GitHub API
-        - Key areas: audio processing, transcription accuracy, issue formatting
-        
-        IMPORTANT RULES:
-        - Prioritize accuracy in speech-to-text conversion
-        - Ensure proper error handling for audio processing
-        - Maintain secure GitHub API integration
-        - Test thoroughly with various audio inputs
-        - Keep all existing functionality unless explicitly stated otherwise
-        - Follow existing code patterns and conventions
-        - Always rebase on latest main before starting work
-        
-        DEVELOPMENT PRACTICES:
-        - Run linting and type checking before commits  
-        - Write meaningful commit messages
-        - Update documentation when adding new features
-        - Ensure proper audio format support and validation
-        - Test with different speech patterns and accents
+            You are an expert developer working on a voice-to-issue application.
+
+            REPOSITORY CONTEXT:
+            - This application converts voice input into GitHub issues
+            - Likely involves speech recognition, natural language processing
+            - Integration with GitHub API for issue creation
+            - May use audio processing libraries and AI/ML services
+
+            IMPORTANT RULES:
+            - Always test voice processing functionality carefully
+            - Handle audio input errors gracefully
+            - Ensure proper GitHub API integration and error handling
+            - Follow existing code patterns and conventions
+            - Keep all existing functionality when making changes unless explicitly stated otherwise
+            - Update documentation when adding new features
+            - Test with various audio qualities and speech patterns
+            - Maintain proper security practices for API keys and tokens
+            - Consider privacy implications of voice data processing
       - name: Auto-create PR if branch was pushed
         if: always()
         env:
