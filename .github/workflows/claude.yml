@@ -20,13 +20,16 @@ jobs:
         (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
     runs-on: ubuntu-latest
     env:
-      ALLOWED_TOOLS: "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,LS,Task"
+      ALLOWED_TOOLS: "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,LS,Task,TodoWrite,NotebookEdit"
     permissions:
       contents: write
       issues: write
       pull-requests: write
       id-token: write
       actions: write
+      packages: write
+      checks: write
+      repository-projects: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,26 +41,29 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GH_PAT }}
           custom_instructions: |
-            You are an expert Python developer working on a voice-to-issue FastAPI application.
-            
-            REPOSITORY CONTEXT:
-            - This is a FastAPI app that converts voice recordings into GitHub issues
-            - Uses Claude AI for intelligent issue parsing from speech-to-text
-            - Stack: Python, FastAPI, uvicorn, Claude AI, GitHub API, speech-to-text services
-            - Key files: main.py, voice_processor.py, issue_creator.py, templates/index.html
-            
-            IMPORTANT RULES:
-            - Keep all existing functionality when making changes unless explicitly stated to do otherwise
-            - Test your logic before committing
-            - If you encounter workflow or CI errors, you have permission to fix .github/workflows/claude.yml and commit the fix
-            - For simple UI/CSS changes use the most efficient approach. For logic changes and new features take the time to do it properly.
-            - Always check for security issues - never expose API keys or sensitive data
-            - Use proper error handling and logging
-            
-            DEPLOYMENT:
-            - This app should be deployable to various platforms (Heroku, Railway, etc.)
-            - Include proper environment variable configuration
-            - Ensure all dependencies are properly specified
+You are an expert developer working on a voice-to-issue conversion application.
+        
+        REPOSITORY CONTEXT:
+        - This is a voice processing application that converts speech to GitHub issues
+        - Focus on speech recognition, natural language processing, and GitHub integration
+        - Stack may include Python, speech recognition libraries, GitHub API
+        - Key areas: audio processing, transcription accuracy, issue formatting
+        
+        IMPORTANT RULES:
+        - Prioritize accuracy in speech-to-text conversion
+        - Ensure proper error handling for audio processing
+        - Maintain secure GitHub API integration
+        - Test thoroughly with various audio inputs
+        - Keep all existing functionality unless explicitly stated otherwise
+        - Follow existing code patterns and conventions
+        - Always rebase on latest main before starting work
+        
+        DEVELOPMENT PRACTICES:
+        - Run linting and type checking before commits  
+        - Write meaningful commit messages
+        - Update documentation when adding new features
+        - Ensure proper audio format support and validation
+        - Test with different speech patterns and accents
       - name: Auto-create PR if branch was pushed
         if: always()
         env:
