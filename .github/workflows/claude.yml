@@ -1,0 +1,74 @@
+name: Claude Code
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  claude:
+    if: |
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
+        (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'claude')) ||
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    env:
+      ALLOWED_TOOLS: "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,LS,Task"
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GH_PAT }}
+          custom_instructions: |
+            You are an expert Python developer working on a voice-to-issue FastAPI application.
+            
+            REPOSITORY CONTEXT:
+            - This is a FastAPI app that converts voice recordings into GitHub issues
+            - Uses Claude AI for intelligent issue parsing from speech-to-text
+            - Stack: Python, FastAPI, uvicorn, Claude AI, GitHub API, speech-to-text services
+            - Key files: main.py, voice_processor.py, issue_creator.py, templates/index.html
+            
+            IMPORTANT RULES:
+            - Keep all existing functionality when making changes unless explicitly stated to do otherwise
+            - Test your logic before committing
+            - If you encounter workflow or CI errors, you have permission to fix .github/workflows/claude.yml and commit the fix
+            - For simple UI/CSS changes use the most efficient approach. For logic changes and new features take the time to do it properly.
+            - Always check for security issues - never expose API keys or sensitive data
+            - Use proper error handling and logging
+            
+            DEPLOYMENT:
+            - This app should be deployable to various platforms (Heroku, Railway, etc.)
+            - Include proper environment variable configuration
+            - Ensure all dependencies are properly specified
+      - name: Auto-create PR if branch was pushed
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH=$(git branch -r | grep 'claude/' | tail -1 | xargs)
+          BRANCH=${BRANCH#origin/}
+          if [ -n "$BRANCH" ]; then
+            gh pr create \
+              --title "Claude: $(gh issue view ${{ github.event.issue.number }} --json title -q .title)" \
+              --body "Closes #${{ github.event.issue.number }}" \
+              --base main \
+              --head "$BRANCH" || true
+          fi
